@@ -47,8 +47,7 @@ const ComplaintForm = ({ onAddComplaint }) => {
 
     setLoading(true);
 
-    // MENGIRIM DATA SESUAI DENGAN PILIHAN DROPDOWN (TANPA MAPPING "Gizi Buruk" / "Jumlah Kurang")
-    // Pastikan string ini sama persis dengan yang ada di ENUM database MySQL Anda
+    // MENGIRIM DATA SESUAI STRUKTUR MODEL REPORT DI SERVER.JS
     const dataLaporan = {
       schoolName: form.lokasi.value,    
       issueType: kategoriPilihan, 
@@ -58,17 +57,18 @@ const ComplaintForm = ({ onAddComplaint }) => {
     try {
       const response = await axios.post("http://127.0.0.1:5000/api/reports", dataLaporan);
 
-      if (response.data.success) {
-        const dataDariMysql = response.data.data;
-        
+      // MODIFIKASI DI SINI: Membaca respons baik berupa data langsung atau bungkus .data
+      const dataDariMysql = response.data.data || response.data;
+      
+      if (dataDariMysql) {
         const formatLokal = {
           id: dataDariMysql.id,
           pelapor: form.nama.value, 
           lokasi: dataDariMysql.schoolName, 
-          kategori: dataDariMysql.issueType, // Mengambil langsung dari respons database
+          kategori: dataDariMysql.issueType, 
           deskripsi: dataDariMysql.description, 
           foto: preview, 
-          status: "Menunggu", 
+          status: dataDariMysql.status || "Pending", 
           createdAt: new Date().toLocaleString('id-ID')
         };
         
